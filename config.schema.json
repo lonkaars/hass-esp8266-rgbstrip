@@ -1,0 +1,20 @@
+{
+	"pluginAlias": "ESP8266RGBStrip",
+	"pluginType": "accessory",
+	"singular": false,
+	"schema": {
+		"type": "object",
+		"properties": {
+			"name": {
+				"title": "Name",
+				"type": "string",
+				"required": true
+			},
+			"host": {
+				"title": "Hostname of the esp8266",
+				"type": "string",
+				"required": true
+			}
+		}
+	}
+}
