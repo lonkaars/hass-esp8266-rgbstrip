@@ -1,10 +1,11 @@
-import { AccessoryConfig, AccessoryPlugin, API, Logger, Service } from 'homebridge';
 import axios from 'axios';
+import { AccessoryConfig, AccessoryPlugin, API, Logger, Service } from 'homebridge';
 const Color = require('color');
 
 export default class ESP8266RGBStrip implements AccessoryPlugin {
 	private infoService: Service;
 	private bulbService: Service;
+	private lastMessage: string;
 	private state: {
 		on: boolean;
 		brightness: number;
@@ -65,9 +66,14 @@ export default class ESP8266RGBStrip implements AccessoryPlugin {
 	}
 
 	updateLamp() {
-		var rgb = Color({ h: this.state.hue, s: this.state.saturation, v: Number(this.state.on && this.state.brightness) });
-		var color = [rgb.red(), rgb.green(), rgb.blue()].map(i => i.toString(16).padStart(2, '0')).join('');
-		axios.post("http://" + this.host, color);
+		var rgb = Color({
+			h: this.state.hue,
+			s: this.state.saturation,
+			v: Number(this.state.on && this.state.brightness),
+		});
+		var color = [rgb.red(), rgb.green(), rgb.blue()].map(i => Math.floor(i).toString(16).padStart(2, '0')).join('');
+		if (color != this.lastMessage) axios.post('http://' + this.host, color);
+		this.lastMessage = color;
 	}
 
 	getServices() {
@@ -78,4 +84,6 @@ export default class ESP8266RGBStrip implements AccessoryPlugin {
 	}
 }
 
-module.exports = (api: API) => { api.registerAccessory('ESP8266RGBStrip', ESP8266RGBStrip) };
+module.exports = (api: API) => {
+	api.registerAccessory('ESP8266RGBStrip', ESP8266RGBStrip);
+};
