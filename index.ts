@@ -34,7 +34,7 @@ export default class ESP8266RGBStrip implements AccessoryPlugin {
 			.setCharacteristic(this.api.hap.Characteristic.Manufacturer, 'nodemcu')
 			.setCharacteristic(this.api.hap.Characteristic.Model, 'esp8266');
 
-		this.bulbService = new this.api.hap.Service.Lightbulb('White');
+		this.bulbService = new this.api.hap.Service.Lightbulb(this.name);
 		this.registerServices();
 	}
 
@@ -72,7 +72,10 @@ export default class ESP8266RGBStrip implements AccessoryPlugin {
 			v: Number(this.state.on && this.state.brightness),
 		});
 		var color = [rgb.red(), rgb.green(), rgb.blue()].map(i => Math.floor(i).toString(16).padStart(2, '0')).join('');
-		if (color != this.lastMessage) axios.post('http://' + this.host, color);
+		if (color != this.lastMessage) {
+			axios.post('http://' + this.host, color)
+				.catch(() => this.log.warn('request failed'));
+		}
 		this.lastMessage = color;
 	}
 
