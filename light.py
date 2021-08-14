@@ -1,6 +1,7 @@
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 import requests
+import threading
 from math import floor
 from homeassistant.const import CONF_MAC
 from homeassistant.components.light import (
@@ -85,5 +86,15 @@ class ESPLedStripLight(LightEntity):
     r = int( int(self._on) * self._rgb[0] * ( self._brightness / 255 ) )
     g = int( int(self._on) * self._rgb[1] * ( self._brightness / 255 ) )
     b = int( int(self._on) * self._rgb[2] * ( self._brightness / 255 ) )
-    requests.post("http://" + self._host, f"{r:02x}{g:02x}{b:02x}")
+
+    def req():
+      success = False
+      while not success:
+        try:
+          requests.post("http://" + self._host, f"{r:02x}{g:02x}{b:02x}")
+          success = True
+        except:
+          continue
+
+    threading.Thread(target=req).start()
 
