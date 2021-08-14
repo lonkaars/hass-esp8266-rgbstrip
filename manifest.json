@@ -1,0 +1,11 @@
+{
+  "domain": "espled",
+  "name": "esp8266-rgbstrip",
+  "documentation": "https://github.com/lonkaars/hass-esp8266-rgbstrip",
+  "issue_tracker": "https://github.com/lonkaars/hass-esp8266-rgbstrip",
+  "codeowners": [ "@lonkaars" ],
+  "version": "0.1.0",
+  "requirements": [],
+  "iot_class": "cloud_polling"
+}
+
