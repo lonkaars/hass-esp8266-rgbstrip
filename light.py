@@ -8,11 +8,14 @@ from homeassistant.components.light import (
   LightEntity,
   SUPPORT_BRIGHTNESS,
   SUPPORT_COLOR,
+  SUPPORT_TRANSITION,
   ATTR_BRIGHTNESS,
   ATTR_RGB_COLOR,
+  ATTR_TRANSITION,
   COLOR_MODE_RGB,
   PLATFORM_SCHEMA
 )
+from time import sleep
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
   vol.Required("name"): cv.string,
@@ -43,7 +46,7 @@ class ESPLedStripLight(LightEntity):
 
   @property
   def supported_features(self):
-    return SUPPORT_BRIGHTNESS | SUPPORT_COLOR
+    return SUPPORT_BRIGHTNESS | SUPPORT_COLOR | SUPPORT_TRANSITION
 
   @property
   def unique_id(self):
@@ -66,21 +69,44 @@ class ESPLedStripLight(LightEntity):
     return self._rgb
 
   def turn_on(self, **kwargs):
+    on_old = self._on
+    brightness_old = self._brightness
+    rgb_old = self._rgb
+
     self._on = True
 
     brightness = kwargs.get(ATTR_BRIGHTNESS)
-    if brightness != None:
-      self._brightness = brightness
+    if brightness != None: self._brightness = brightness
 
     rgb = kwargs.get(ATTR_RGB_COLOR)
-    if rgb != None:
-      self._rgb = rgb
+    if rgb != None: self._rgb = rgb
+
+    transition = kwargs.get(ATTR_TRANSITION)
+    if transition != None:
+        self.interpolate(brightness_old if on_old else 0, brightness, rgb_old if on_old else (0, 0, 0,), rgb, transition)
 
     self.update_espled()
 
   def turn_off(self, **kwargs):
     self._on = False
     self.update_espled()
+
+  def interpolate(self, brightness_old, brightness, rgb_old, rgb, transition):
+    step_duration = 0.250
+    steps = int(transition / step_duration)
+    if rgb_old == None: rgb_old = (0, 0, 0,)
+    if rgb == None: rgb = (0, 0, 0,)
+    if brightness_old == None: brightness_old = 0
+    if brightness == None: brightness = 0
+    for x in range(steps):
+        weight = x / steps
+        r = rgb_old[0] * (1 - weight) + rgb[0] * weight
+        g = rgb_old[1] * (1 - weight) + rgb[1] * weight
+        b = rgb_old[2] * (1 - weight) + rgb[2] * weight
+        self._rgb = (r, g, b,)
+        self._brightness = brightness_old * (1 - weight) + brightness * weight
+        self.update_espled()
+        sleep(step_duration)
 
   def update_espled(self):
     r = int( int(self._on) * self._rgb[0] * ( self._brightness / 255 ) )
