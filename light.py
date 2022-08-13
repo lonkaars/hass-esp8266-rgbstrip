@@ -83,7 +83,7 @@ class ESPLedStripLight(LightEntity):
 
     transition = kwargs.get(ATTR_TRANSITION)
     if transition != None:
-        self.interpolate(brightness_old if on_old else 0, brightness, rgb_old if on_old else (0, 0, 0,), rgb, transition)
+        self.interpolate(brightness_old if on_old else 0, self._brightness, rgb_old if on_old else (0, 0, 0,), self._rgb, transition)
 
     self.update_espled()
 
